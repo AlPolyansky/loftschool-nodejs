@@ -1,11 +1,12 @@
 {
-	"extends": "standard",
-	"rules": {
-		"no-extra-semi": "error",
-		"semi": [2, "always"]
+	"parserOptions": {
+			"ecmaVersion": 6,
+			"sourceType": "module",
+			"ecmaFeatures": {
+					"jsx": true
+			}
 	},
-	"parserOptions": { 
-		"ecmaVersion": 6
+	"rules": {
+			"semi": 2
 	}
- }
- 
+}
