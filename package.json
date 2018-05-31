@@ -11,6 +11,7 @@
   "license": "ISC",
   "devDependencies": {
     "commander": "^2.15.1",
-    "del": "^3.0.0"
+    "del": "^3.0.0",
+    "mz": "^2.7.0"
   }
 }

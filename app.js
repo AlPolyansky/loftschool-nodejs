@@ -1,8 +1,35 @@
-const fs = require("fs");
+const fs = require("mz/fs");
 const path = require("path");
 const del = require("del");
 const commander = require("commander");
 let rootFolder = path.resolve(__dirname, "root");
+
+
+const sortAbc = function(a, b) {
+  if (a.name < b.name) return -1;
+  if (a.name > b.name) return 1;
+  return 0;
+};
+
+
+// const createFolder = function(dirStr, callback = function() {}) {
+//   if (!fs.existsSync(dirStr)) {
+//     fs.mkdir(dirStr, (err, cb) => {
+//       callback();
+//     });
+//   } else {
+//     callback();
+//   }
+// };
+
+const createFolder = function(dirStr) {
+  return fs.exists(dirStr)
+    .then(exist => !exist ? dirStr : new Error('folder already exists'))
+    .then(folderPath => fs.mkdir(dirStr))
+    .catch(err => err.errno !== -4075 && console.log(err)); 
+};
+
+createFolder(path.join(__dirname, '/sorted'));
 
 const readFile = function(dir, done) {
   let results = [];
@@ -32,21 +59,7 @@ const readFile = function(dir, done) {
   });
 };
 
-const sortAbc = function(a, b) {
-  if (a.name < b.name) return -1;
-  if (a.name > b.name) return 1;
-  return 0;
-};
 
-const createFolder = function(dirStr, callback = function() {}) {
-  if (!fs.existsSync(dirStr)) {
-    fs.mkdir(dirStr, (err, cb) => {
-      callback();
-    });
-  } else {
-    callback();
-  }
-};
 
 const putFileToFolder = function(item, newFolderPath, cb = function() {}) {
   fs.readFile(item.path, (err, itemContent) => {
@@ -67,17 +80,17 @@ const createItemFolders = function(sortFolder, sortArr) {
   });
 };
 
-readFile(rootFolder, (err, results) => {
-  if (err) throw err;
-  const sortArr = results.sort(sortAbc);
-  const sortFolder = path.join(__dirname + "/sorted");
+// readFile(rootFolder, (err, results) => {
+//   if (err) throw err;
+//   const sortArr = results.sort(sortAbc);
+//   const sortFolder = path.join(__dirname + "/sorted");
 
-  del([sortFolder, path.join(sortFolder + "/**/*")])
-    .then(path => {
-      createFolder(sortFolder, err => {
-        if (err) throw err;
-        createItemFolders(sortFolder, sortArr);
-      });
-    })
-    .catch(err => console.log(err));
-});
+//   del([sortFolder, path.join(sortFolder + "/**/*")])
+//     .then(path => {
+//       createFolder(sortFolder, err => {
+//         if (err) throw err;
+//         createItemFolders(sortFolder, sortArr);
+//       });
+//     })
+//     .catch(err => console.log(err));
+// });
