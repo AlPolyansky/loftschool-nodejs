@@ -11,16 +11,7 @@ const sortAbc = function(a, b) {
   return 0;
 };
 
-
-// const createFolder = function(dirStr, callback = function() {}) {
-//   if (!fs.existsSync(dirStr)) {
-//     fs.mkdir(dirStr, (err, cb) => {
-//       callback();
-//     });
-//   } else {
-//     callback();
-//   }
-// };
+//createFolder(path.join(__dirname, '/sorted'));
 
 const createFolder = function(dirStr) {
   return fs.exists(dirStr)
@@ -29,56 +20,94 @@ const createFolder = function(dirStr) {
     .catch(err => err.errno !== -4075 && console.log(err)); 
 };
 
-createFolder(path.join(__dirname, '/sorted'));
+// const readFile = function(dir, done){
+//   let results = [];
 
-const readFile = function(dir, done) {
-  let results = [];
-  fs.readdir(dir, function(err, list) {
-    if (err) return done(err);
+//   fs.readdir(dir)
+//     .then()
+// }
 
-    let pending = list.length;
-    if (!pending) return done(null, results);
 
-    list.forEach(function(file) {
-      file = path.resolve(dir, file);
-      fs.stat(file, function(err, stat) {
-        if (stat && stat.isDirectory()) {
-          readFile(file, function(err, res) {
-            results = results.concat(res);
-            if (!--pending) done(null, results);
-          });
-        } else {
-          results.push({
-            name: path.parse(file).base,
-            path: file
-          });
-          if (!--pending) done(null, results);
-        }
-      });
-    });
-  });
+
+// const walker = function(dir, done) {
+//   let results = [];
+//   fs.readdir(dir, function(err, list) {
+//     if (err) return done(err);
+
+//     let pending = list.length;
+//     if (!pending) return done(null, results);
+
+//     list.forEach(function(file) {
+//       file = path.resolve(dir, file);
+//       fs.stat(file, function(err, stat) {
+//         if (stat && stat.isDirectory()) {
+//           walker(file, function(err, res) {
+//             results = results.concat(res);
+//             if (!--pending) done(null, results);
+//           });
+//         } else {
+//           results.push({
+//             name: path.parse(file).base,
+//             path: file
+//           });
+//           if (!--pending) done(null, results);
+//         }
+//       });
+//     });
+//   });
+// };
+
+const myPath = path.join(__dirname, '/root');
+
+const isDirectory = function(item){
+  return fs.stat(item)
+    .then(stat => stat.isDirectory());
 };
 
 
+let results = [];
+let stack = [];
 
-const putFileToFolder = function(item, newFolderPath, cb = function() {}) {
-  fs.readFile(item.path, (err, itemContent) => {
-    if (err) throw err;
-    fs.writeFile(`${newFolderPath}/${item.name}`, itemContent, err => {
-      if (err) throw err;
-      cb();
-    });
-  });
+const walker = function(dir){
+  return fs.readdir(dir)
+    .then(names => names.map(item => path.join(dir, item)))
+    .then(items => {
+      return Promise.all(items.map(item => isDirectory(item)
+        .then(isDir => {
+          if(isDir){
+            stack.push(walker(item));
+            return void 0;
+          } else {
+            return item;
+          }
+          
+        })
+      ));
+    })
+    .then(stat => stat.filter(fileName => fileName))
+    .catch(err => console.log(err));
 };
 
-const createItemFolders = function(sortFolder, sortArr) {
-  sortArr.forEach(item => {
-    const newFolderPath = path.join(`${sortFolder}/${item.name[0]}`);
-    createFolder(newFolderPath, () => {
-      putFileToFolder(item, newFolderPath);
-    });
-  });
-};
+walker(myPath)
+
+// const putFileToFolder = function(item, newFolderPath, cb = function() {}) {
+//   fs.readFile(item.path, (err, itemContent) => {
+//     if (err) throw err;
+//     fs.writeFile(`${newFolderPath}/${item.name}`, itemContent, err => {
+//       if (err) throw err;
+//       cb();
+//     });
+//   });
+// };
+
+// const createItemFolders = function(sortFolder, sortArr) {
+//   sortArr.forEach(item => {
+//     const newFolderPath = path.join(`${sortFolder}/${item.name[0]}`);
+//     createFolder(newFolderPath, () => {
+//       putFileToFolder(item, newFolderPath);
+//     });
+//   });
+// };
 
 // readFile(rootFolder, (err, results) => {
 //   if (err) throw err;
