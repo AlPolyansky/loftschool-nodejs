@@ -35,7 +35,6 @@ function createSortDir(outputFolder, data){
 }
 
 
-console.log('start');
 walker(rootFolder)
   .then(items => createSortDir(outputFolder, items))
   .then(items => {
@@ -43,9 +42,7 @@ walker(rootFolder)
       const itemName = path.basename(item);
       const newFolderSrc = path.join(outputFolder, itemName[0]);
       return fs.mkdir(newFolderSrc)
-        .then(_ => {
-          return items;
-        })
+        .then(_ => items)
         .catch(err => err);
     });
   })
@@ -56,5 +53,5 @@ walker(rootFolder)
       fs.copyFile(file, path.join(newFolderSrc, fileName));
     }));
   })
-  .then(_ => console.log('finish'))
+  .then(_ => console.log('sorted'))
   .catch(err => console.log(err));
