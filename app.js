@@ -68,27 +68,51 @@ const isDirectory = function(item){
 let results = [];
 let stack = [];
 
-const walker = function(dir){
-  return fs.readdir(dir)
-    .then(names => names.map(item => path.join(dir, item)))
-    .then(items => {
-      return Promise.all(items.map(item => isDirectory(item)
-        .then(isDir => {
-          if(isDir){
-            stack.push(walker(item));
-            return void 0;
-          } else {
-            return item;
-          }
-          
-        })
-      ));
-    })
-    .then(stat => stat.filter(fileName => fileName))
-    .catch(err => console.log(err));
-};
+
+// const walker = function(dir){
+//   return fs.readdir(dir)
+//     .then(names => names.map(item => path.join(dir, item)))
+//     // .then(items => {
+//     //   return Promise.all(items.map(item => isDirectory(item)))
+//     //     .then(data => {
+//     //       return data.filter(function(val, idx){
+//     //         if(!val){
+//     //           return stack.push(items[idx]);
+//     //         }else{
+//     //           return new Promise((resolve, reject) => {
+//     //             walker(items[idx]);
+//     //             reject();
+//     //           }).catch(err => err);
+//     //         }
+//     //       });
+//     //     });
+//     // })
+//     // .then(stat => {
+//     //   stack.concat(stack);
+//     // })
+//     .catch(err => console.log(err));
+// };
+
+
+
+function walker(dir) {
+  return fs.readdir(dir).then(items => {
+    return Promise.all(items.map(file => {
+      file = path.resolve(dir, file);
+      return fs.stat(file).then((stat) => {
+          return stat.isDirectory()
+            ? walker(file)
+            : file;
+      });
+    }));
+  }).then((results) => {
+      return Array.prototype.concat.apply([], results);
+  }).catch(err => err);
+}
 
 walker(myPath)
+  .then(item => console.log(item))
+  .catch(err => err);
 
 // const putFileToFolder = function(item, newFolderPath, cb = function() {}) {
 //   fs.readFile(item.path, (err, itemContent) => {
